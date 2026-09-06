@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Новости СНГ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #0f0f1a;
+            color: white;
+            min-height: 100vh;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            font-size: 36px;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, #f7971e, #ffd200);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 25px;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        .mode-selector {
+            
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        .mode-btn {
+            padding: 12px 35px;
+            border: 2px solid #333;
+            background: transparent;
+            color: #aaa;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .mode-btn:hover { border-color: #ffd200; color: #ffd200; transform: translateY(-2px); }
+        .mode-btn.active { background: #ffd200; border-color: #ffd200; color: #1a1a2e; }
+        .mode-btn.military { border-color: #ff4444; }
+        .mode-btn.military:hover { border-color: #ff4444; color: #ff4444; }
+        .mode-btn.military.active { background: #ff4444; border-color: #ff4444; color: #fff; }
+        /* ===== ДОБАВЛЯЕМ ЭТОТ БЛОК ===== */
+        .mode-btn.video { border-color: #ff6b6b; }
+        .mode-btn.video:hover { border-color: #ff6b6b; color: #ff6b6b; }
+        .mode-btn.video.active { background: #ff6b6b; border-color: #ff6b6b; color: #fff; }
+        .language-selector {
+         
+
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .lang-btn {
+            background: #222;
+            border: none;
+            color: #aaa;
+            padding: 8px 25px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .lang-btn.active { background: #ffd200; color: #1a1a2e; }
+        .lang-btn:hover { background: #ffd200; color: #1a1a2e; }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+        .tab-btn {
+            padding: 12px 25px;
+            border: 2px solid #333;
+            background: transparent;
+            color: #aaa;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn:hover { border-color: #ffd200; color: #ffd200; transform: translateY(-2px); }
+        .tab-btn.active { background: #ffd200; border-color: #ffd200; color: #1a1a2e; }
+
+        .news-grid {
+    
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+
+.video-card {
+    background: rgba(255,255,255,0.07);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.video-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.2);
+}
+
+.video-card iframe {
+    width: 100%;
+    height: 200px;
+    border: none;
+}
+
+.video-placeholder {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #241f2b;
+    color: #ff9b9b;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.video-placeholder:hover {
+    background: #302536;
+}
+
+.video-card .info {
+    padding: 12px 15px;
+}
+
+.video-card .info h4 {
+    color: #fff;
+    font-size: 15px;
+}
+
+.video-card .info span {
+    color: #888;
+    font-size: 12px;
+}
+
+        .news-card {
+            background: rgba(255,255,255,0.07);
+            padding: 18px 20px;
+            border-radius: 15px;
+            border-left: 5px solid #ffd200;
+            transition: 0.3s;
+            animation: fadeIn 0.5s ease;
+            cursor: default;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+        }
+        .news-card.military-card { border-left-color: #ff4444; }
+        .news-card:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 210, 0, 0.15);
+        }
+        .news-card.military-card:hover {
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.2);
+        }
+
+        .news-card h3 {
+            font-size: 17px;
+            margin-bottom: 8px;
+            color: #fff;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .news-card p {
+            color: #bbb;
+            font-size: 14px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-grow: 1;
+            margin-bottom: 10px;
+        }
+        .news-card .footer-card {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            gap: 6px;
+        }
+        .news-card .time {
+            font-size: 11px;
+            color: #666;
+            background: rgba(255,255,255,0.05);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .news-card .source {
+            font-size: 11px;
+            color: #ffd200;
+        }
+        .news-card .tag {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.1);
+        }
+        .tag.military-tag { background: rgba(255, 68, 68, 0.3); color: #ff6b6b; }
+        .tag.peace-tag { background: rgba(0, 200, 200, 0.2); color: #66e5e5; }
+
+        .read-more-btn {
+            background: #ffd200;
+            color: #1a1a2e;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 6px;
+            width: fit-content;
+        }
+        .read-more-btn:hover { background: #f7c000; transform: scale(1.05); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader { text-align: center; color: #aaa; padding: 50px; grid-column: 1 / -1; }
+        .error { text-align: center; padding: 30px; grid-column: 1 / -1; }
+        .error .icon { font-size: 48px; display: block; margin-bottom: 10px; }
+        .error .title { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+        .error .desc { color: #aaa; font-size: 14px; }
+
+        .footer { text-align: center; margin-top: 30px; color: #444; font-size: 13px; }
+
+        /* Модалка */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: #1a1a2e;
+            max-width: 700px;
+            width: 100%;
+            max-height: 80vh;
+            padding: 30px;
+            border-radius: 20px;
+            border-left: 5px solid #ffd200;
+            overflow-y: auto;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+        .modal-content h2 { font-size: 24px; margin-bottom: 15px; color: #fff; }
+        .modal-content p { color: #ccc; font-size: 16px; line-height: 1.8; margin-bottom: 15px; }
+        .modal-content .meta { color: #888; font-size: 14px; margin-bottom: 20px; }
+        .modal-content .source-link {
+            display: inline-block;
+            background: #ffd200;
+            color: #1a1a2e;
+            padding: 10px 25px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        .modal-content .source-link:hover { background: #f7c000; transform: scale(1.05); }
+        .modal-close {
+            position: sticky; top: 0; float: right;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10;
+        }
+        .modal-close:hover { transform: rotate(90deg); background: #ff4444; }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #0f0f1a; border-radius: 10px; }
+        .modal-content::-webkit-scrollbar-thumb { background: #ffd200; border-radius: 10px; }
+
+        @media (max-width: 700px) {
+            .news-grid { grid-template-columns: 1fr; }
+            .container { padding: 15px; }
+            h1 { font-size: 26px; }
+            .mode-selector { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📰 Новости СНГ</h1>
+    <p class="subtitle">Сводки со всего Содружества (реальные данные)</p>
+
+    <div class="mode-selector">
+        <button class="mode-btn active" data-mode="peace">🌍 Мирные новости</button>
+        <button class="mode-btn military" data-mode="military">⚔️ Фронтовые сводки</button>
+        <button class="mode-btn video" data-mode="video">📺 Видео</button>
+    </div>
+
+    <div class="language-selector">
+        <button class="lang-btn active" data-lang="ru">🇷🇺 Русский</button>
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-country="ru">🇷🇺 Россия</button>
+        <button class="tab-btn" data-country="ua">🇺🇦 Украина</button>
+        <button class="tab-btn" data-country="by">🇧🇾 Беларусь</button>
+        <button class="tab-btn" data-country="kz">🇰🇿 Казахстан</button>
+    </div>
+
+    <div id="newsContainer" class="news-grid">
+        <div class="loader">⏳ Загрузка новостей...</div>
+    </div>
+
+    <div class="footer">🚀 Твой первый новостной агрегатор с реальными новостями</div>
+</div>
+
+<!-- Модалка -->
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" id="modalClose">✕</button>
+        <h2 id="modalTitle">Заголовок</h2>
+        <div class="meta" id="modalMeta">Источник • Дата</div>
+        <p id="modalDescription">Полный текст новости...</p>
+        <a href="#" id="modalLink" class="source-link" target="_blank">🔗 Читать на источнике</a>
+    </div>
+</div>
+
+<script>
+    // ===== КЛЮЧЕВЫЕ СЛОВА =====
+    const peaceTerms = {
+        ru: {
+            ru: 'Россия OR Москва -война -СВО -дрон -удар -ВСУ -армия -военный -атака -обстрел',
+            ua: 'Украина OR Киев -война -СВО -дрон -удар -ВСУ -армия -военный -атака -обстрел',
+            by: 'Беларусь OR Минск -война -СВО -дрон -удар -армия -военный -атака',
+            kz: 'Казахстан OR Астана -война -СВО -дрон -удар -армия -военный'
+        },
+        en: {
+            ru: 'Russia OR Moscow -war -military -drone -strike -attack -army',
+            ua: 'Ukraine OR Kyiv -war -military -drone -strike -attack -army',
+            by: 'Belarus OR Minsk -war -military -drone -strike',
+            kz: 'Kazakhstan OR Astana -war -military -drone'
+        }
+    };
+
+    const militaryTerms = {
+        ru: {
+            ru: 'СВО OR война OR дрон OR удар OR ВСУ OR армия OR военный OR атака OR обстрел OR фронт Россия',
+            ua: 'СВО OR война OR дрон OR удар OR ВСУ OR армия OR военный OR атака OR обстрел OR фронт Украина',
+            by: 'СВО OR война OR дрон OR удар OR армия OR военный OR Беларусь',
+            kz: 'СВО OR война OR дрон OR удар OR армия OR военный OR Казахстан'
+        },
+        en: {
+            ru: 'Russia war OR Ukraine war OR military OR drone OR strike OR attack OR army',
+            ua: 'Ukraine war OR Russia war OR military OR drone OR strike OR attack OR army',
+            by: 'Belarus war OR military OR drone',
+            kz: 'Kazakhstan war OR military OR drone'
+        }
+    };
+
+    // Локальные новости (запасной вариант)
+    const localNews = {
+        ru: [
+            { title: "В Москве открылся новый технопарк", description: "В столице начал работу инновационный центр.", source: "ТАСС" },
+            { title: "Рубль укрепился на фоне нефти", description: "Курс российской валюты показал рост.", source: "РБК" }
+        ],
+        ua: [
+            { title: "Киев презентовал новый проект метро", description: "В столице построят новую ветку подземки.", source: "Укринформ" },
+            { title: "Украинские IT-специалисты создали стартап", description: "Команда из Львова привлекла инвестиции.", source: "Forbes UA" }
+        ],
+        by: [
+            { title: "Минск стал культурной столицей СНГ", description: "В столице проходят международные фестивали.", source: "БЕЛТА" },
+            { title: "Беларусь запускает новый спутник", description: "Космическая программа выходит на новый уровень.", source: "СБ" }
+        ],
+        kz: [
+            { title: "Астана принимает экономический форум", description: "В столице собрались лидеры бизнеса из 30 стран.", source: "Казинформ" },
+            { title: "Казахстан внедряет цифровой тенге", description: "Национальный банк запускает пилотный проект.", source: "Finprom" }
+        ]
+    };
+
+    const videoTerms = {
+        ru: {
+            ru: 'новости Россия Москва',
+            ua: 'новости Украина Киев',
+            by: 'новости Беларусь Минск',
+            kz: 'новости Казахстан Астана'
+        },
+        en: {
+            ru: 'Russia Moscow news',
+            ua: 'Ukraine Kyiv news',
+            by: 'Belarus Minsk news',
+            kz: 'Kazakhstan Astana news'
+        }
+    };
+
+    const localVideos = {
+        ru: [
+            { title: 'Новости России', channel: 'YouTube News', search: 'новости Россия сегодня' },
+            { title: 'Новости Москвы', channel: 'YouTube News', search: 'новости Москва сегодня' }
+        ],
+        ua: [
+            { title: 'Новости Украины', channel: 'YouTube News', search: 'новости Украина сегодня' },
+            { title: 'Новости Киева', channel: 'YouTube News', search: 'новости Киев сегодня' }
+        ],
+        by: [
+            { title: 'Новости Беларуси', channel: 'YouTube News', search: 'новости Беларусь сегодня' },
+            { title: 'Новости Минска', channel: 'YouTube News', search: 'новости Минск сегодня' }
+        ],
+        kz: [
+            { title: 'Новости Казахстана', channel: 'YouTube News', search: 'новости Казахстан сегодня' },
+            { title: 'Новости Астаны', channel: 'YouTube News', search: 'новости Астана сегодня' }
+        ]
+    };
+
+    // ===== ЭЛЕМЕНТЫ =====
+    const container = document.getElementById('newsContainer');
+    const countryBtns = document.querySelectorAll('.tab-btn');
+    const langBtns = document.querySelectorAll('.lang-btn');
+    const modeBtns = document.querySelectorAll('.mode-btn');
+
+    const modal = document.getElementById('modal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMeta = document.getElementById('modalMeta');
+    const modalDescription = document.getElementById('modalDescription');
+    const modalLink = document.getElementById('modalLink');
+    const modalClose = document.getElementById('modalClose');
+
+    let currentLang = 'ru';
+    let currentCountry = 'ru';
+    let currentMode = 'peace';
+    let currentNews = [];
+    let abortController = null;
+    let currentVideos = [];
+
+    // ===== ФУНКЦИИ =====
+
+    function openModal(article) {
+        modalTitle.textContent = article.title || 'Без заголовка';
+        modalMeta.textContent = `${article.source?.name || 'Неизвестный источник'} • ${article.publishedAt ? new Date(article.publishedAt).toLocaleString() : 'Дата неизвестна'}`;
+        modalDescription.textContent = article.description || article.content || 'Полный текст отсутствует.';
+        modalLink.href = article.url || '#';
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function createCard(article, index, mode) {
+        const card = document.createElement('div');
+        card.className = `news-card ${mode === 'military' ? 'military-card' : ''}`;
+
+        const titleDiv = document.createElement('h3');
+        titleDiv.textContent = article.title || 'Без заголовка';
+
+        const descP = document.createElement('p');
+        descP.textContent = article.description || 'Описание отсутствует';
+
+        const footer = document.createElement('div');
+        footer.className = 'footer-card';
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'time';
+        timeSpan.textContent = `🕒 ${article.publishedAt ? new Date(article.publishedAt).toLocaleString() : ''}`;
+
+        const sourceSpan = document.createElement('span');
+        sourceSpan.className = 'source';
+        sourceSpan.textContent = `📡 ${article.source?.name || 'Неизвестный источник'}`;
+
+        const tagSpan = document.createElement('span');
+        tagSpan.className = `tag ${mode === 'military' ? 'military-tag' : 'peace-tag'}`;
+        tagSpan.textContent = mode === 'military' ? '⚔️ Фронт' : '🌍 Мир';
+
+        const btn = document.createElement('button');
+        btn.className = 'read-more-btn';
+        btn.textContent = '📖 Читать';
+        btn.dataset.index = index;
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (currentNews[index]) openModal(currentNews[index]);
+        });
+
+        footer.append(timeSpan, sourceSpan, tagSpan, btn);
+        card.append(titleDiv, descP, footer);
+        return card;
+    }
+
+    function showLocalNews(country, mode) {
+        const news = localNews[country] || localNews.ru;
+        currentNews = news.map(item => ({
+            title: item.title,
+            description: item.description,
+            source: { name: item.source },
+            publishedAt: new Date().toISOString(),
+            url: '#'
+        }));
+        container.innerHTML = '';
+        currentNews.forEach((article, index) => {
+            const card = createCard(article, index, mode);
+            container.appendChild(card);
+        });
+    }
+
+    function createVideoCard(video) {
+        const card = document.createElement('article');
+        card.className = 'video-card';
+
+        if (video.videoId) {
+            const frame = document.createElement('iframe');
+            frame.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
+            frame.title = video.title || 'Видео новостей';
+            frame.loading = 'lazy';
+            frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            frame.allowFullscreen = true;
+            card.appendChild(frame);
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'video-placeholder';
+            placeholder.textContent = 'Видео временно недоступно';
+            card.appendChild(placeholder);
+        }
+
+        const info = document.createElement('div');
+        info.className = 'info';
+        const title = document.createElement('h4');
+        title.textContent = video.title || 'Видео новостей';
+        const channel = document.createElement('span');
+        channel.textContent = video.channel || 'YouTube';
+        info.append(title, channel);
+        card.appendChild(info);
+        return card;
+    }
+
+    function showLocalVideos(country) {
+        currentVideos = localVideos[country] || localVideos.ru;
+        container.className = 'video-grid';
+        container.innerHTML = '';
+        currentVideos.forEach(video => container.appendChild(createVideoCard(video)));
+    }
+
+    async function loadVideosFromAPI(country, lang) {
+        if (abortController) abortController.abort();
+
+        abortController = new AbortController();
+        container.className = 'video-grid';
+        container.innerHTML = '<div class="loader">⏳ Загрузка видео...</div>';
+
+        try {
+            const params = new URLSearchParams({
+                part: 'snippet',
+                type: 'video',
+                order: 'date',
+                maxResults: '12',
+                q: videoTerms[lang]?.[country] || videoTerms.ru.ru
+            });
+            const response = await fetch(`https://news-proxy-925a.onrender.com/youtube?${params}`, { signal: abortController.signal });
+            const data = await response.json();
+
+            if (!response.ok || data.error || !data.items?.length) {
+                showLocalVideos(country);
+                return;
+            }
+
+            currentVideos = data.items
+                .filter(item => item.id?.videoId)
+                .map(item => ({
+                    videoId: item.id.videoId,
+                    title: item.snippet.title,
+                    channel: item.snippet.channelTitle
+                }));
+
+            if (!currentVideos.length) {
+                showLocalVideos(country);
+                return;
+            }
+
+            container.innerHTML = '';
+            currentVideos.forEach(video => container.appendChild(createVideoCard(video)));
+        } catch (error) {
+            if (error.name !== 'AbortError') showLocalVideos(country);
+        }
+    }
+
+    function showError(icon, title, desc) {
+        container.innerHTML = `
+            <div class="error">
+                <span class="icon">${icon}</span>
+                <div class="title">${title}</div>
+                <div class="desc">${desc}</div>
+            </div>
+        `;
+    }
+
+    function sortNewsByDate(articles) {
+        return articles.sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0));
+    }
+
+    async function loadNewsFromAPI(country, lang, mode) {
+        // Отменяем предыдущий запрос
+        if (abortController) abortController.abort();
+        abortController = new AbortController();
+
+        container.innerHTML = '<div class="loader">⏳ Загрузка новостей...</div>';
+        container.className = 'news-grid';
+
+        try {
+            const terms = mode === 'peace' ? peaceTerms : militaryTerms;
+            const query = terms[lang]?.[country] || terms[lang]?.ru || 'news';
+
+            const params = new URLSearchParams({
+                q: query,
+                language: lang,
+                sortBy: 'publishedAt',
+                pageSize: '12'
+            });
+            const url = `https://news-proxy-925a.onrender.com/news?${params}`;
+
+            const response = await fetch(url, { signal: abortController.signal });
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                showLocalNews(country, mode);
+                return;
+            }
+
+            if (data.totalResults === 0) {
+                showLocalNews(country, mode);
+                return;
+            }
+
+            const sortedArticles = sortNewsByDate(data.articles);
+            currentNews = sortedArticles;
+            container.innerHTML = '';
+
+            sortedArticles.forEach((article, index) => {
+                const card = createCard(article, index, mode);
+                container.appendChild(card);
+            });
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                // Запрос был отменён — ничего не делаем
+                return;
+            }
+            showLocalNews(country, mode);
+        }
+    }
+
+    function loadNews(country, lang, mode) {
+        if (mode === 'video') {
+            loadVideosFromAPI(country, lang);
+            return;
+        }
+
+        container.className = 'news-grid';
+        loadNewsFromAPI(country, lang, mode);
+    }
+
+    // ===== ОБРАБОТЧИКИ =====
+
+    modeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            modeBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentMode = this.dataset.mode;
+            loadNews(currentCountry, currentLang, currentMode);
+        });
+    });
+
+    countryBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            countryBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentCountry = this.dataset.country;
+            loadNews(currentCountry, currentLang, currentMode);
+        });
+    });
+
+    langBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            langBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentLang = this.dataset.lang;
+            loadNews(currentCountry, currentLang, currentMode);
+        });
+    });
+
+    // Запуск
+    loadNews(currentCountry, currentLang, currentMode);
+</script>
+
+</body>
+</html>
