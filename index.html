@@ -581,28 +581,21 @@
         }
     };
 
-    const trustedChannels = {
+    const channelIds = {
         ru: [
-            'Россия 24',
-            'RT на русском',
-            'Первый канал',
-            'РБК',
-            'ТАСС',
-            'Вести.ру',
-            'Минобороны РФ'
+            'UCzf_WmEz83Gznp07lbekudg',
+            'UCvGgrUckNkxiM-8G94hNhgg',
+            'UCPpxDrjWIs32mhMziEYjawg'
         ],
         ua: [
-            'ТСН',
-            'Украина 24',
-            'Громадське'
+            'UCXoJ8kY9zpLBEz-8saaT3ew',
+            'UC_8MULqW6vqcq8cQmBKKW7A'
         ],
         by: [
-            'Беларусь 1',
-            'ОНТ'
+            'UCWqeoQKVbAfMjk8-aC713JQ'
         ],
         kz: [
-            '24 KZ',
-            'Астана TV'
+            'UCkOxm6awDqG0PwPq4L2T5-Q'
         ]
     };
 
@@ -779,9 +772,7 @@
         channel.textContent = video.channel || 'YouTube';
         info.append(title, channel);
 
-        const isTrusted = (trustedChannels[country] || []).some(channelName =>
-            (video.channel || '').toLowerCase().includes(channelName.toLowerCase())
-        );
+        const isTrusted = (channelIds[country] || []).includes(video.channelId);
         if (isTrusted) {
             const badge = document.createElement('span');
             badge.textContent = '✅ Официальный канал';
@@ -828,17 +819,14 @@
                 .map(item => ({
                     videoId: item.id.videoId,
                     title: item.snippet.title,
-                    channel: item.snippet.channelTitle
+                    channel: item.snippet.channelTitle,
+                    channelId: item.snippet.channelId
                 }));
 
-            const trusted = trustedChannels[country] || [];
+            const trusted = channelIds[country] || [];
             const sortedVideos = allVideos.sort((a, b) => {
-                const aIsTrusted = trusted.some(channelName =>
-                    (a.channel || '').toLowerCase().includes(channelName.toLowerCase())
-                );
-                const bIsTrusted = trusted.some(channelName =>
-                    (b.channel || '').toLowerCase().includes(channelName.toLowerCase())
-                );
+                const aIsTrusted = trusted.includes(a.channelId);
+                const bIsTrusted = trusted.includes(b.channelId);
                 if (aIsTrusted && !bIsTrusted) return -1;
                 if (!aIsTrusted && bIsTrusted) return 1;
                 return 0;
@@ -996,7 +984,8 @@
                 .map(item => ({
                     videoId: item.id.videoId,
                     title: item.snippet.title,
-                    channel: item.snippet.channelTitle
+                    channel: item.snippet.channelTitle,
+                    channelId: item.snippet.channelId
                 }));
 
             if (!videos.length) {
@@ -1006,7 +995,7 @@
 
             currentVideos = videos;
             container.innerHTML = '';
-            videos.forEach(video => container.appendChild(createVideoCard(video)));
+            videos.forEach(video => container.appendChild(createVideoCard(video, currentCountry)));
         } catch (error) {
             if (error.name !== 'AbortError') {
                 container.innerHTML = '<div class="error">⚠️ Ошибка поиска. Проверьте интернет и попробуйте снова.</div>';
