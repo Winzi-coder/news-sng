@@ -325,11 +325,59 @@
         .modal-content::-webkit-scrollbar-track { background: #0f0f1a; border-radius: 10px; }
         .modal-content::-webkit-scrollbar-thumb { background: #ffd200; border-radius: 10px; }
 
+        /* ===== ПОИСК ===== */
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .search-container input {
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1px solid #333;
+            background: #1a1a2e;
+            color: #fff;
+            font-size: 15px;
+            width: 320px;
+            transition: 0.3s;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-color: #ffd200;
+            box-shadow: 0 0 12px rgba(255, 210, 0, 0.3);
+        }
+
+        .search-container button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 40px;
+            background: #ffd200;
+            color: #1a1a2e;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .search-container button:hover {
+            background: #f7c000;
+            transform: scale(1.05);
+        }
+
         @media (max-width: 700px) {
             .news-grid { grid-template-columns: 1fr; }
             .container { padding: 15px; }
             h1 { font-size: 26px; }
             .mode-selector { flex-direction: column; align-items: center; }
+        }
+
+        @media (max-width: 600px) {
+            .search-container { flex-direction: column; }
+            .search-container input { width: 100%; }
         }
     </style>
 </head>
@@ -348,6 +396,12 @@
     <div class="language-selector">
         <button class="lang-btn active" data-lang="ru">🇷🇺 Русский</button>
         <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+    </div>
+
+    <!-- ПОИСК -->
+    <div class="search-container">
+        <input type="text" id="videoSearch" placeholder="🔍 Поиск видео по тегам..." />
+        <button id="searchBtn">Найти</button>
     </div>
 
     <div class="tabs">
@@ -709,6 +763,71 @@
 
         container.className = 'news-grid';
         loadNewsFromAPI(country, lang, mode);
+    }
+
+    // ===== ПОИСК ВИДЕО =====
+    document.getElementById('searchBtn').addEventListener('click', function() {
+        const query = document.getElementById('videoSearch').value.trim();
+        if (query) {
+            modeBtns.forEach(b => b.classList.remove('active'));
+            document.querySelector('.mode-btn.video').classList.add('active');
+            currentMode = 'video';
+            loadVideosFromSearch(query);
+        }
+    });
+
+    document.getElementById('videoSearch').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('searchBtn').click();
+        }
+    });
+
+    async function loadVideosFromSearch(query) {
+        if (!query) return;
+
+        if (abortController) abortController.abort();
+        abortController = new AbortController();
+
+        container.className = 'video-grid';
+        container.innerHTML = '<div class="loader">🔍 Ищем видео по запросу "' + query + '"...</div>';
+
+        try {
+            const params = new URLSearchParams({
+                q: query,
+                maxResults: '12',
+                order: 'date'
+            });
+
+            const url = `https://news-proxy-925a.onrender.com/youtube?${params}`;
+            const response = await fetch(url, { signal: abortController.signal });
+            const data = await response.json();
+
+            if (!response.ok || data.error || !data.items?.length) {
+                container.innerHTML = `<div class="error">❌ По запросу "${query}" ничего не найдено. Попробуйте другие ключевые слова.</div>`;
+                return;
+            }
+
+            const videos = data.items
+                .filter(item => item.id?.videoId)
+                .map(item => ({
+                    videoId: item.id.videoId,
+                    title: item.snippet.title,
+                    channel: item.snippet.channelTitle
+                }));
+
+            if (!videos.length) {
+                container.innerHTML = `<div class="error">❌ По запросу "${query}" ничего не найдено. Попробуйте другие ключевые слова.</div>`;
+                return;
+            }
+
+            currentVideos = videos;
+            container.innerHTML = '';
+            videos.forEach(video => container.appendChild(createVideoCard(video)));
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                container.innerHTML = '<div class="error">⚠️ Ошибка поиска. Проверьте интернет и попробуйте снова.</div>';
+            }
+        }
     }
 
     // ===== ОБРАБОТЧИКИ =====
