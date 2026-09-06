@@ -788,15 +788,13 @@
                 return;
             }
 
-            const allVideos = data.items
+            currentVideos = data.items
                 .filter(item => item.id?.videoId)
                 .map(item => ({
                     videoId: item.id.videoId,
                     title: item.snippet.title,
                     channel: item.snippet.channelTitle
                 }));
-
-            currentVideos = allVideos;
 
             if (!currentVideos.length) {
                 showLocalVideos(country);
