@@ -773,12 +773,16 @@
         container.innerHTML = '<div class="loader">⏳ Загрузка видео...</div>';
 
         try {
+            const randomWords = ['срочно', 'сегодня', 'главное', 'прямой эфир', 'новости'];
+            const randomWord = randomWords[Math.floor(Math.random() * randomWords.length)];
+            const query = `${videoTerms[lang]?.[country] || videoTerms.ru.ru} ${randomWord}`;
+
             const params = new URLSearchParams({
                 part: 'snippet',
                 type: 'video',
                 order: 'date',
                 maxResults: '24',
-                q: videoTerms[lang]?.[country] || videoTerms.ru.ru
+                q: query
             });
             const response = await fetch(`https://news-proxy-925a.onrender.com/youtube?${params}`, { signal: abortController.signal });
             const data = await response.json();
