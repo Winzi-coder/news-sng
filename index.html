@@ -581,24 +581,6 @@
         }
     };
 
-    const channelIds = {
-        ru: [
-            'UCeM6FqjVWZfFkFkY5k3jF-w', // Москва 24
-            'UCvGgrUckNkxiM-8G94hNhgg', // RT на русском
-            'UC3Z-5nHT37V8n6iXEHpQq1g'  // РИА Новости
-        ],
-        ua: [
-            'UCXoJ8kY9zpLBEz-8saaT3ew', // ТСН
-            'UC_8MULqW6vqcq8cQmBKKW7A'  // Украина 24
-        ],
-        by: [
-            'UCWqeoQKVbAfMjk8-aC713JQ'  // Беларусь 1
-        ],
-        kz: [
-            'UCkOxm6awDqG0PwPq4L2T5-Q'  // 24 KZ
-        ]
-    };
-
     const localVideos = {
         ru: [
             { title: 'Новости России', channel: 'YouTube News', search: 'новости Россия сегодня' },
@@ -772,14 +754,6 @@
         channel.textContent = video.channel || 'YouTube';
         info.append(title, channel);
 
-        const isTrusted = (channelIds[country] || []).includes(video.channelId);
-        if (isTrusted) {
-            const badge = document.createElement('span');
-            badge.textContent = '✅ Официальный канал';
-            badge.style.cssText = 'color: #4caf50; font-size: 11px; margin-left: 8px;';
-            info.appendChild(badge);
-        }
-
         card.appendChild(info);
         return card;
     }
@@ -803,49 +777,26 @@
                 part: 'snippet',
                 type: 'video',
                 order: 'date',
-                maxResults: '12',
+                maxResults: '24',
                 q: videoTerms[lang]?.[country] || videoTerms.ru.ru
             });
             const response = await fetch(`https://news-proxy-925a.onrender.com/youtube?${params}`, { signal: abortController.signal });
             const data = await response.json();
 
-            const officialVideos = [];
-            const ids = channelIds[country] || [];
-            for (const id of ids) {
-                const channelParams = new URLSearchParams({
-                    part: 'snippet',
-                    channelId: id,
-                    order: 'date',
-                    maxResults: '3'
-                });
-                const channelResponse = await fetch(`https://news-proxy-925a.onrender.com/youtube?${channelParams}`, {
-                    signal: abortController.signal
-                });
-                const channelData = await channelResponse.json();
-                if (channelData.items?.length) {
-                    officialVideos.push(...channelData.items);
-                }
+            if (!response.ok || data.error || !data.items?.length) {
+                showLocalVideos(country);
+                return;
             }
 
-            const allVideos = [...officialVideos, ...(data.items || [])];
-            const uniqueVideos = [];
-            const seenIds = new Set();
-            for (const item of allVideos) {
-                const videoId = item.id?.videoId;
-                if (videoId && !seenIds.has(videoId)) {
-                    seenIds.add(videoId);
-                    uniqueVideos.push(item);
-                }
-            }
-
-            currentVideos = uniqueVideos
+            const allVideos = data.items
                 .filter(item => item.id?.videoId)
                 .map(item => ({
                     videoId: item.id.videoId,
                     title: item.snippet.title,
-                    channel: item.snippet.channelTitle,
-                    channelId: item.snippet.channelId
+                    channel: item.snippet.channelTitle
                 }));
+
+            currentVideos = allVideos;
 
             if (!currentVideos.length) {
                 showLocalVideos(country);
