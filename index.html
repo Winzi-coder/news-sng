@@ -581,6 +581,31 @@
         }
     };
 
+    const trustedChannels = {
+        ru: [
+            'Россия 24',
+            'RT на русском',
+            'Первый канал',
+            'РБК',
+            'ТАСС',
+            'Вести.ру',
+            'Минобороны РФ'
+        ],
+        ua: [
+            'ТСН',
+            'Украина 24',
+            'Громадське'
+        ],
+        by: [
+            'Беларусь 1',
+            'ОНТ'
+        ],
+        kz: [
+            '24 KZ',
+            'Астана TV'
+        ]
+    };
+
     const localVideos = {
         ru: [
             { title: 'Новости России', channel: 'YouTube News', search: 'новости Россия сегодня' },
@@ -727,7 +752,7 @@
         });
     }
 
-    function createVideoCard(video) {
+    function createVideoCard(video, country = currentCountry) {
         const card = document.createElement('article');
         card.className = 'video-card';
 
@@ -753,6 +778,17 @@
         const channel = document.createElement('span');
         channel.textContent = video.channel || 'YouTube';
         info.append(title, channel);
+
+        const isTrusted = (trustedChannels[country] || []).some(channelName =>
+            (video.channel || '').toLowerCase().includes(channelName.toLowerCase())
+        );
+        if (isTrusted) {
+            const badge = document.createElement('span');
+            badge.textContent = '✅ Официальный канал';
+            badge.style.cssText = 'color: #4caf50; font-size: 11px; margin-left: 8px;';
+            info.appendChild(badge);
+        }
+
         card.appendChild(info);
         return card;
     }
@@ -761,7 +797,7 @@
         currentVideos = localVideos[country] || localVideos.ru;
         container.className = 'video-grid';
         container.innerHTML = '';
-        currentVideos.forEach(video => container.appendChild(createVideoCard(video)));
+        currentVideos.forEach(video => container.appendChild(createVideoCard(video, country)));
     }
 
     async function loadVideosFromAPI(country, lang) {
@@ -787,7 +823,7 @@
                 return;
             }
 
-            currentVideos = data.items
+            const allVideos = data.items
                 .filter(item => item.id?.videoId)
                 .map(item => ({
                     videoId: item.id.videoId,
@@ -795,13 +831,28 @@
                     channel: item.snippet.channelTitle
                 }));
 
+            const trusted = trustedChannels[country] || [];
+            const sortedVideos = allVideos.sort((a, b) => {
+                const aIsTrusted = trusted.some(channelName =>
+                    (a.channel || '').toLowerCase().includes(channelName.toLowerCase())
+                );
+                const bIsTrusted = trusted.some(channelName =>
+                    (b.channel || '').toLowerCase().includes(channelName.toLowerCase())
+                );
+                if (aIsTrusted && !bIsTrusted) return -1;
+                if (!aIsTrusted && bIsTrusted) return 1;
+                return 0;
+            });
+
+            currentVideos = sortedVideos;
+
             if (!currentVideos.length) {
                 showLocalVideos(country);
                 return;
             }
 
             container.innerHTML = '';
-            currentVideos.forEach(video => container.appendChild(createVideoCard(video)));
+            sortedVideos.forEach(video => container.appendChild(createVideoCard(video, country)));
         } catch (error) {
             if (error.name !== 'AbortError') showLocalVideos(country);
         }
